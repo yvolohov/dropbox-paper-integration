@@ -1,0 +1,3 @@
+# START COMMANDS
+php -S localhost:8002
+ngrok start pdffiller3
