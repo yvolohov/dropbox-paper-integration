@@ -9,6 +9,7 @@ use Silex\Application;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class AppController
 {
@@ -97,7 +98,10 @@ class AppController
 
         try {
             file_put_contents("files/{$id}.html", $response->getBody());
-            $dpdf = new Dompdf();
+
+            $options = new Options();
+            $options->set('isRemoteEnabled', true);
+            $dpdf = new Dompdf($options);
             $dpdf->loadHtml($response->getBody());
             $dpdf->render();
             $output = $dpdf->output();
