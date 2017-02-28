@@ -12,7 +12,15 @@ $(document).ready(function () {
         var parts = href.split('-');
         var id = parts[parts.length - 1];
 
-        
+        $.ajax({
+            method: 'GET',
+            url: '/download/' + id,
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
     });
-
 });

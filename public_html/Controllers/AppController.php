@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Silex\Application;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Dompdf\Dompdf;
 
 class AppController
 {
@@ -68,6 +69,44 @@ class AppController
 
     public function downloadFile(Request $request, Application $app, $id)
     {
-        return $id;
+        if (!$app['session']->has('token_params')) {
+            return new JsonResponse(['success' => false, 'message' => 'Dropbox token not found'], 400);
+        }
+
+        $tokenParams = $app['session']->get('token_params');
+        $client = new Client();
+
+        try {
+            $response = $client->post('https://api.dropboxapi.com/2/paper/docs/download', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $tokenParams['access_token'],
+                    'Dropbox-API-Arg' => \GuzzleHttp\json_encode([
+                        'doc_id' => $id,
+                        'export_format' => 'html'
+                    ])
+                ]
+            ]);
+        }
+        catch (RequestException $e) {
+            return new JsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            return new JsonResponse(['success' => false, 'message' => 'Wrong response from Dropbox Paper'], 500);
+        }
+
+        try {
+            file_put_contents("files/{$id}.html", $response->getBody());
+            $dpdf = new Dompdf();
+            $dpdf->loadHtml($response->getBody());
+            $dpdf->render();
+            $output = $dpdf->output();
+            file_put_contents("files/{$id}.pdf", $output);
+        }
+        catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+
+        return new JsonResponse(['success' => true, 'message' => 'OK'], 200);
     }
 }
