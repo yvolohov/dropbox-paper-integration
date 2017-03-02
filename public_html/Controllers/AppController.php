@@ -18,7 +18,9 @@ class AppController
         $authStatus = $app['session']->has('token_params');
 
         if ($authStatus) {
-            return $app['twig']->render('load.twig');
+            return $app['twig']->render('load.twig', [
+                'token_params' => json_encode($app['session']->get('token_params'))
+            ]);
         }
         else {
             $clientId = $app['config']['app_key'];
