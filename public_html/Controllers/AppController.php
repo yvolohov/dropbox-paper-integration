@@ -99,8 +99,11 @@ class AppController
         }
 
         try {
-            file_put_contents("files/{$id}.html", $response->getBody());
+            /* в этом заголовке возвращается имя файла и другие параметры */
+            $fileProps = $response->getHeader('Dropbox-Api-Result');
+            //error_log(print_r($fileProps, True));
 
+            file_put_contents("files/{$id}.html", $response->getBody());
             $options = new Options();
             $options->set('isRemoteEnabled', true);
             $dpdf = new Dompdf($options);
